@@ -1,0 +1,3 @@
+add_executable(test_tensor_shape test_tensor_shape.cpp)
+target_link_libraries(test_tensor_shape PRIVATE Transformers)
+add_test(NAME test_tensor_shape COMMAND test_tensor_shape)
