@@ -3,6 +3,6 @@
 
 int main() {
   std::vector<size_t> shape = {2, 2};
-  transformer::Tensor<int> tensor(shape);
+  tr::Tensor<int> tensor(shape);
   assert(tensor.shape() == shape);
 }

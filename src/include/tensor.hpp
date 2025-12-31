@@ -54,8 +54,8 @@ public:
     m_strides = {1};
   }
 
-  const std::vector<size_t> &shape() {
-    return (const std::vector<size_t> &)m_shape;
+  const std::vector<size_t> shape() {
+    return (const std::vector<size_t>)m_shape;
   }
 
   T &at(const std::vector<size_t> &indices) {
@@ -72,7 +72,39 @@ public:
 
     return m_data.at(calculate_index(indices));
   }
+
+  std::vector<T> get_data() { return m_data; }
+
+  std::vector<T> *get_data_handle() { return &m_data; }
 };
+
+template <typename T>
+Tensor<T> tensor_from_data(std::vector<T> data, std::vector<size_t> shape) {
+
+  {
+    size_t count = 0;
+    size_t shape_size = shape.size();
+
+    for (size_t i = 0; i < shape_size; i++) {
+      size_t index = shape.at(i);
+      assert(index > 0 &&
+             "tr::tensor_from_data shape cannot have an index of value 0");
+      count += index;
+    }
+
+    assert(count == data.size() &&
+           "tr::tensor_from_data size of data does not match tensor shape");
+  }
+
+  Tensor<T> out(shape);
+
+  *out.get_data_handle() = data;
+
+  return out;
+}
+
+Tensor<int> tensor_randint_in_shape(std::vector<size_t> shape,
+                                    unsigned int seed);
 
 template <typename T> Tensor<T> mat_mul(Tensor<T> t1, Tensor<T> t2) {
 
