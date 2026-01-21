@@ -1,4 +1,4 @@
-#include "../src/include/tensor.hpp"
+#include "transformers/tensor.hpp"
 
 int main() {
   tr::Tensor<int> a = tr::tensor_randint_in_shape({3, 4}, 1);
