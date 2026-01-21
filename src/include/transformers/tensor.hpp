@@ -106,7 +106,7 @@ Tensor<T> tensor_from_data(std::vector<T> data, std::vector<size_t> shape) {
 Tensor<int> tensor_randint_in_shape(std::vector<size_t> shape,
                                     unsigned int seed);
 
-template <typename T> Tensor<T> mat_mul(Tensor<T> t1, Tensor<T> t2) {
+template <typename T> Tensor<T> matmul(Tensor<T> t1, Tensor<T> t2) {
 
   assert(t1.shape().size() == 2 && t2.shape().size() == 2 &&
          "tr::mat_mul() only accepts rank 2 tensors");
