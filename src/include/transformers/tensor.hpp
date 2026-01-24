@@ -146,8 +146,8 @@ void matsum_in_place(Tensor<T> &t1, Tensor<T> &t2, Tensor<T> &out) {
   assert(t1.shape().size() == 2 && "tr::matsum only supports matrices");
   assert(t2.shape().size() == 2 && "tr::matsum only supports matrices");
 
-  assert(t1.shape() == t2.shape() == out.shape() &&
-         "tr::matsum tensor shapes must match");
+  assert(t1.shape() == t2.shape() && "tr::matsum tensor shapes must match");
+  assert(out.shape() == t1.shape() && "tr::matsum tensor shapes must match");
 
   std::vector<T> *t1_data = t1.get_data_handle();
   std::vector<T> *t2_data = t2.get_data_handle();
