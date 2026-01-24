@@ -1,10 +1,23 @@
 #include "transformers/tensor.hpp"
 #include <cassert>
+#include <vector>
 
-int main() {
-  tr::Tensor<int> a = tr::tensor_randint_in_shape({4, 5}, 1);
-  tr::Tensor<int> b = tr::tensor_randint_in_shape({5, 6}, 1);
-  tr::Tensor<int> c = tr::matmul(a, b);
-  assert(c.shape().at(0) == a.shape().at(0));
-  assert(c.shape().at(1) == b.shape().at(1));
+void test_2x2_matmul() {
+  std::vector<float> data = {1.0f, 2.0f, 3.0f, 4.0f};
+  tr::Tensor<float> a = tr::tensor_from_data(data, {2, 2});
+
+  data = {1.0f, 2.0f, 3.0f, 4.0f};
+  tr::Tensor<float> b = tr::tensor_from_data(data, {2, 2});
+
+  tr::Tensor<float> c = tr::matmul(a, b);
+
+  assert(c.shape()[0] == 2);
+  assert(c.shape()[1] == 2);
+
+  assert(c.at({0, 0}) == 7);
+  assert(c.at({0, 1}) == 10);
+  assert(c.at({1, 0}) == 15);
+  assert(c.at({1, 1}) == 22);
 }
+
+int main() { test_2x2_matmul(); }

@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 
 project(Transformers)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_BUILD_TYPE DEBUG)
 add_library(Transformers STATIC
     src/tensor.cpp
 )
