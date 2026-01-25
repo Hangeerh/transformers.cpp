@@ -1,6 +1,6 @@
 #include "transformers/layer.hpp"
 
-tr::layer::Dense::Dense(size_t in_size, size_t out_size, bool bias) {
+tr::Dense::Dense(size_t in_size, size_t out_size, bool bias) {
   m_in_size = in_size;
   m_out_size = out_size;
   m_weights = tr::Tensor<float>({m_in_size, m_out_size});
@@ -10,7 +10,7 @@ tr::layer::Dense::Dense(size_t in_size, size_t out_size, bool bias) {
   }
 }
 
-tr::Tensor<float> tr::layer::Dense::forward(tr::Tensor<float> &x) {
+tr::Tensor<float> tr::Dense::forward(tr::Tensor<float> &x) {
   tr::Tensor<float> out = matmul(m_weights, x);
 
   out = matsum(x, m_bias);
