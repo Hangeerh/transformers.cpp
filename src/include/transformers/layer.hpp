@@ -2,7 +2,7 @@
 
 #include "transformers/tensor.hpp"
 #include <cstddef>
-namespace tr::layer {
+namespace tr {
 
 class Layer {
 public:
@@ -28,4 +28,4 @@ private:
   tr::Tensor<float> m_bias;
 };
 
-}; // namespace tr::layer
+}; // namespace tr

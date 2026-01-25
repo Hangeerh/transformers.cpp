@@ -3,17 +3,17 @@
 #include "layer.hpp"
 #include <vector>
 
-namespace tr::model {
+namespace tr {
 
 class Sequential {
 public:
   Sequential();
   ~Sequential();
 
-  void addLayer(tr::layer::Layer layer);
+  void addLayer(Layer layer);
 
 private:
-  std::vector<std::unique_ptr<tr::layer::Layer>> layers;
+  std::vector<std::unique_ptr<Layer>> layers;
 };
 
-}; // namespace tr::model
+}; // namespace tr
