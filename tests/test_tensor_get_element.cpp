@@ -1,4 +1,4 @@
-#include "transformers/tensor.hpp"
+#include "tensor.hpp"
 #include <cassert>
 #include <vector>
 

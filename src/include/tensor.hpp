@@ -107,28 +107,28 @@ Tensor<int> tensor_randint_in_shape(std::vector<size_t> shape,
                                     unsigned int seed);
 
 template <typename T>
-void matmul_in_place(Tensor<T> &t1, Tensor<T> &t2, Tensor<T> &out) {
+void matmul_in_place(Tensor<T> *t1, Tensor<T> *t2, Tensor<T> *out) {
 
-  assert(t1.shape().size() == 2 && t2.shape().size() == 2 &&
+  assert(t1->shape().size() == 2 && t2->shape().size() == 2 &&
          "tr::mat_mul() only accepts rank 2 tensors");
 
-  assert(t1.shape().at(1) == t2.shape().at(0) &&
+  assert(t1->shape().at(1) == t2->shape().at(0) &&
          "tr::mat_mul() dimension mismatch between multiplied matrices");
 
-  assert(t1.shape()[0] == out.shape()[0]);
-  assert(t2.shape()[1] == out.shape()[1]);
+  assert(t1->shape()[0] == out->shape()[0]);
+  assert(t2->shape()[1] == out->shape()[1]);
 
-  size_t out_height = t1.shape().at(0);
-  size_t out_width = t2.shape().at(1);
-  size_t iters = t1.shape().at(1);
+  size_t out_height = t1->shape().at(0);
+  size_t out_width = t2->shape().at(1);
+  size_t iters = t1->shape().at(1);
 
   for (size_t i = 0; i < out_height; i++) {
     for (size_t j = 0; j < out_width; j++) {
       T accumulator = 0;
       for (size_t k = 0; k < iters; k++) {
-        accumulator += t1.at({i, k}) * t2.at({k, j});
+        accumulator += t1->at({i, k}) * t2->at({k, j});
       }
-      out.at({i, j}) = accumulator;
+      out->at({i, j}) = accumulator;
     }
   }
 }
@@ -136,22 +136,30 @@ void matmul_in_place(Tensor<T> &t1, Tensor<T> &t2, Tensor<T> &out) {
 template <typename T> Tensor<T> matmul(Tensor<T> &t1, Tensor<T> &t2) {
   tr::Tensor<T> out({t1.shape()[0], t2.shape()[1]});
 
-  matmul_in_place(t1, t2, out);
+  matmul_in_place(&t1, &t2, &out);
+
+  return out;
+}
+
+template <typename T> Tensor<T> matmul(Tensor<T> *t1, Tensor<T> *t2) {
+  tr::Tensor<T> out({t1->shape()[0], t2->shape()[1]});
+
+  matmul_in_place(t1, t2, &out);
 
   return out;
 }
 
 template <typename T>
-void matsum_in_place(Tensor<T> &t1, Tensor<T> &t2, Tensor<T> &out) {
-  assert(t1.shape().size() == 2 && "tr::matsum only supports matrices");
-  assert(t2.shape().size() == 2 && "tr::matsum only supports matrices");
+void matsum_in_place(Tensor<T> *t1, Tensor<T> *t2, Tensor<T> *out) {
+  assert(t1->shape().size() == 2 && "tr::matsum only supports matrices");
+  assert(t2->shape().size() == 2 && "tr::matsum only supports matrices");
 
-  assert(t1.shape() == t2.shape() && "tr::matsum tensor shapes must match");
-  assert(out.shape() == t1.shape() && "tr::matsum tensor shapes must match");
+  assert(t1->shape() == t2->shape() && "tr::matsum tensor shapes must match");
+  assert(out->shape() == t1->shape() && "tr::matsum tensor shapes must match");
 
-  std::vector<T> *t1_data = t1.get_data_handle();
-  std::vector<T> *t2_data = t2.get_data_handle();
-  std::vector<T> *out_data = out.get_data_handle();
+  std::vector<T> *t1_data = t1->get_data_handle();
+  std::vector<T> *t2_data = t2->get_data_handle();
+  std::vector<T> *out_data = out->get_data_handle();
 
   size_t count = t1_data->size();
 
@@ -162,6 +170,14 @@ void matsum_in_place(Tensor<T> &t1, Tensor<T> &t2, Tensor<T> &out) {
 
 template <typename T> Tensor<T> matsum(Tensor<T> &t1, Tensor<T> &t2) {
   Tensor<T> out(t1.shape());
+
+  matsum_in_place(&t1, &t2, &out);
+
+  return out;
+}
+
+template <typename T> Tensor<T> matsum(Tensor<T> *t1, Tensor<T> *t2) {
+  Tensor<T> out(t1->shape());
 
   matsum_in_place(t1, t2, out);
 

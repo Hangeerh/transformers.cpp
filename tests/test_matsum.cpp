@@ -1,4 +1,4 @@
-#include "transformers/tensor.hpp"
+#include "tensor.hpp"
 
 int main() {
   std::vector<float> data = {1.0f, 2.0f, 3.0f, 4.0f};

@@ -1,4 +1,4 @@
-#include "transformers/tensor.hpp"
+#include "tensor.hpp"
 
 tr::Tensor<int> tr::tensor_randint_in_shape(std::vector<size_t> shape,
                                             unsigned int seed = 1) {
