@@ -1,6 +1,5 @@
 #pragma once
 #include "tensor.hpp"
-#pragma once
 
 namespace tr {
 
@@ -10,18 +9,24 @@ struct CGTensorNode {
   void *creator;
 };
 
-struct CGMatmulNode {
+class CGMatmulNode {
+public:
   CGTensorNode *lhs;
   CGTensorNode *rhs;
 
   CGTensorNode *out;
+
+  void forward();
 };
 
-struct CGSumNode {
+class CGSumNode {
+public:
   CGTensorNode *lhs;
   CGTensorNode *rhs;
 
   CGTensorNode *out;
+
+  void forward();
 };
 
 } // namespace tr
