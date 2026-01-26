@@ -27,5 +27,18 @@ set_target_properties(Transformers PROPERTIES
     CXX_STANDARD_REQUIRED ON
 )
 
+# Install targets
+install(TARGETS Transformers
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    RUNTIME DESTINATION bin
+)
+
+# Install headers
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/include/
+    DESTINATION include/transformers
+    FILES_MATCHING PATTERN "*.hpp"
+)
+
 enable_testing()
 add_subdirectory(tests)
