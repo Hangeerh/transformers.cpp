@@ -10,7 +10,6 @@ target_sources(Transformers
   PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/src/tensor.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/layer.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/compute_graph.cpp
   
   PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/src/include/tensor.hpp
