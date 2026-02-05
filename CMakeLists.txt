@@ -10,10 +10,14 @@ target_sources(Transformers
   PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/src/tensor.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/graph.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/kernel_registry.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/topological_sorter.cpp
   
   PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/src/include/tensor.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/include/graph.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/include/kernel.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/include/graph_compiler.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/include/transformers.hpp
 )
 
