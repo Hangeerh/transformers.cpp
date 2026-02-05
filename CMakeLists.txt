@@ -9,14 +9,11 @@ add_library(Transformers STATIC)
 target_sources(Transformers
   PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/src/tensor.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/layer.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/compute_graph.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/graph.cpp
   
   PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/src/include/tensor.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/include/layer.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/include/model.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/include/compute_graph.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/include/graph.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/include/transformers.hpp
 )
 

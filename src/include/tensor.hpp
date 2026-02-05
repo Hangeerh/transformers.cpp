@@ -34,6 +34,8 @@ private:
   }
 
 public:
+  Tensor() = default;
+
   Tensor(const std::vector<size_t> &shape) {
     m_shape = shape;
     m_strides = std::vector<size_t>(m_shape.size());
@@ -46,12 +48,6 @@ public:
     }
 
     m_data = std::vector<T>(total_elements);
-  }
-
-  Tensor() {
-    m_data = {(T)0};
-    m_shape = {1};
-    m_strides = {1};
   }
 
   const std::vector<size_t> shape() {
