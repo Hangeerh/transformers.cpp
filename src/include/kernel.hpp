@@ -14,9 +14,6 @@ private:
 public:
   void register_kernel(NodeType type, KernelFn fn);
   const KernelFn get_kernel(NodeType type);
+  void register_default_kernels();
 };
-
-void register_default_kernels();
-
-static KernelRegistry Registry;
 } // namespace tr

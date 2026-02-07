@@ -1,5 +1,6 @@
 #include "graph.hpp"
 #include "graph_compiler.hpp"
+#include "kernel.hpp"
 #include <iostream>
 
 void tr::CompiledGraph::feed(Node *node, const Tensor<float> &value) {
@@ -34,7 +35,8 @@ tr::Tensor<float> tr::CompiledGraph::execute() {
   return result;
 }
 
-tr::CompiledGraph tr::GraphCompiler::compile(tr::Node *sink) {
+tr::CompiledGraph tr::GraphCompiler::compile(tr::Node *sink,
+                                             tr::KernelRegistry *Registry) {
   tr::CompiledGraph compiled;
 
   std::vector<tr::Node *> sorted = tr::TopologicalSorter::sort(sink);
@@ -48,7 +50,7 @@ tr::CompiledGraph tr::GraphCompiler::compile(tr::Node *sink) {
   for (Node *node : sorted) {
     ExecutionStep step;
     step.node = node;
-    step.kernel = tr::Registry.get_kernel(node->type);
+    step.kernel = Registry->get_kernel(node->type);
     step.debug_name = node->name;
 
     for (Edge *e : node->src_edges) {

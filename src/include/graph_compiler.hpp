@@ -11,17 +11,17 @@ public:
 class OptimizationPass {
 public:
   virtual ~OptimizationPass() = default;
-  virtual void run(NodeSet &nodes);
+  virtual void run(NodeSet &nodes, KernelRegistry *Registry);
   virtual std::string name() const = 0;
 };
 
 class ConstantFolding : OptimizationPass {
 private:
   bool can_fold(Node *n);
-  void fold(Node *n);
+  void fold(Node *n, KernelRegistry *Registry);
 
 public:
-  void run(NodeSet &nodes) override;
+  void run(NodeSet &nodes, KernelRegistry *Registry) override;
   std::string name() const override;
 };
 
@@ -67,7 +67,7 @@ public:
 class GraphCompiler {
 public:
   // TODO add options
-  CompiledGraph compile(Node *sink);
+  CompiledGraph compile(Node *sink, KernelRegistry *Registry);
 };
 
 } // namespace tr

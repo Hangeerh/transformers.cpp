@@ -13,38 +13,38 @@ const tr::KernelFn tr::KernelRegistry::get_kernel(NodeType type) {
   throw std::runtime_error("No kernel registered for this operation");
 }
 
-void tr::register_default_kernels() {
-  Registry.register_kernel(
+void tr::KernelRegistry::register_default_kernels() {
+  register_kernel(
       NodeType::SOURCE,
       [](const std::vector<Tensor<float>> &inputs, Node *) -> Tensor<float> {
         return inputs.empty() ? Tensor<float>() : inputs[0];
       });
 
-  Registry.register_kernel(
+  register_kernel(
       NodeType::SINK,
       [](const std::vector<Tensor<float>> &inputs, Node *) -> Tensor<float> {
         return inputs.empty() ? Tensor<float>() : inputs[0];
       });
 
-  Registry.register_kernel(NodeType::PLACEHOLDER,
-                           [](const std::vector<Tensor<float>> &inputs,
-                              Node *node) -> Tensor<float> {
-                             if (!inputs.empty()) {
-                               return inputs[0];
-                             }
+  register_kernel(NodeType::PLACEHOLDER,
+                  [](const std::vector<Tensor<float>> &inputs,
+                     Node *node) -> Tensor<float> {
+                    if (!inputs.empty()) {
+                      return inputs[0];
+                    }
 
-                             return node->const_value;
-                           });
+                    return node->const_value;
+                  });
 
   // TODO tensor sum
-  Registry.register_kernel(
+  register_kernel(
       NodeType::SUM,
       [](const std::vector<Tensor<float>> &inputs, Node *) -> Tensor<float> {
         Tensor<float> result;
         return result;
       });
 
-  Registry.register_kernel(
+  register_kernel(
       NodeType::RELU,
       [](const std::vector<Tensor<float>> &inputs, Node *) -> Tensor<float> {
         if (inputs.empty())
@@ -58,9 +58,7 @@ void tr::register_default_kernels() {
       });
 
   // TODO matmul kernel
-  Registry.register_kernel(
-      NodeType::MATMUL,
-      [](const std::vector<Tensor<float>> &inputs, Node *) -> Tensor<float> {
-        return Tensor<float>{};
-      });
+  register_kernel(NodeType::MATMUL,
+                  [](const std::vector<Tensor<float>> &inputs,
+                     Node *) -> Tensor<float> { return Tensor<float>{}; });
 }
