@@ -1,4 +1,5 @@
 #include "graph_compiler.hpp"
+#include "kernel.hpp"
 
 bool tr::ConstantFolding::can_fold(tr::Node *n) {
   NodeType t = n->type;
@@ -28,5 +29,14 @@ void tr::ConstantFolding::fold(tr::Node *n) {
   n->src_edges.clear();
 }
 
-void tr::ConstantFolding::run(NodeSet &nodes) {}
-std::string tr::ConstantFolding::name() const {}
+void tr::ConstantFolding::run(NodeSet &nodes) {
+  int folded = 0;
+  for (Node *n : nodes) {
+    if (can_fold(n)) {
+      fold(n);
+      folded++;
+    }
+  }
+}
+
+std::string tr::ConstantFolding::name() const { return "ConstantFolding"; }
