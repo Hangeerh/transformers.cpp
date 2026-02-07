@@ -43,7 +43,7 @@ tr::CompiledGraph tr::GraphCompiler::compile(tr::Node *sink,
 
   std::unique_ptr<tr::ConstantFolding> fold =
       std::make_unique<tr::ConstantFolding>();
-  fold->run(sorted);
+  fold->run(sorted, Registry);
 
   compiled.memory_plan = tr::MemoryPlanner::create_plan(sorted);
 
@@ -73,4 +73,4 @@ tr::CompiledGraph tr::GraphCompiler::compile(tr::Node *sink,
   return compiled;
 }
 
-void tr::OptimizationPass::run(NodeSet &nodes) {}
+void tr::OptimizationPass::run(NodeSet &nodes, KernelRegistry *Registry) {}
