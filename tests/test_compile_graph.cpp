@@ -1,6 +1,7 @@
 #include "graph_compiler.hpp"
 
 int main() {
+  tr::register_default_kernels();
   tr::GraphBuilder f;
   tr::Node *source = f.source();
   tr::Node *layer1 = f.linear(source);

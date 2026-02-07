@@ -45,6 +45,29 @@ tr::CompiledGraph tr::GraphCompiler::compile(tr::Node *sink) {
 
   compiled.memory_plan = tr::MemoryPlanner::create_plan(sorted);
 
+  for (Node *node : sorted) {
+    ExecutionStep step;
+    step.node = node;
+    step.kernel = tr::Registry.get_kernel(node->type);
+    step.debug_name = node->name;
+
+    for (Edge *e : node->src_edges) {
+      step.input_edge_ids.push_back(e->id);
+    }
+    for (Edge *e : node->dst_edges) {
+      step.output_edge_ids.push_back(e->id);
+    }
+
+    // Track input/output nodes
+    if (node->type == NodeType::SOURCE || node->type == NodeType::PLACEHOLDER) {
+      compiled.input_nodes.push_back(node);
+    }
+    if (node->type == NodeType::SINK) {
+      compiled.output_nodes.push_back(node);
+    }
+
+    compiled.steps.push_back(step);
+  }
   return compiled;
 }
 
