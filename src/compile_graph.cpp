@@ -34,7 +34,7 @@ tr::Tensor<float> tr::CompiledGraph::execute() {
   return result;
 }
 
-tr::CompiledGraph compile(tr::Node *sink) {
+tr::CompiledGraph tr::GraphCompiler::compile(tr::Node *sink) {
   tr::CompiledGraph compiled;
 
   std::vector<tr::Node *> sorted = tr::TopologicalSorter::sort(sink);
@@ -47,3 +47,5 @@ tr::CompiledGraph compile(tr::Node *sink) {
 
   return compiled;
 }
+
+void tr::OptimizationPass::run(NodeSet &nodes) {}

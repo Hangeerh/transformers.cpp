@@ -1,6 +1,6 @@
 #include "graph.hpp"
 
-tr::GraphFactory::~GraphFactory() {
+tr::GraphBuilder::~GraphBuilder() {
   for (Node *n : all_nodes) {
     delete n;
   }
@@ -10,7 +10,7 @@ tr::GraphFactory::~GraphFactory() {
   }
 }
 
-tr::Node *tr::GraphFactory::create_node(tr::NodeType type) {
+tr::Node *tr::GraphBuilder::create_node(tr::NodeType type) {
   Node *node = new Node;
   node->type = type;
   node->id = current_node_id++;
@@ -18,7 +18,7 @@ tr::Node *tr::GraphFactory::create_node(tr::NodeType type) {
   return node;
 }
 
-tr::Edge *tr::GraphFactory::connect_nodes(tr::Node *src, int src_port,
+tr::Edge *tr::GraphBuilder::connect_nodes(tr::Node *src, int src_port,
                                           tr::Node *dst, int dst_port) {
   Edge *edge = new Edge;
   edge->id = current_edge_id++;
@@ -36,18 +36,18 @@ tr::Edge *tr::GraphFactory::connect_nodes(tr::Node *src, int src_port,
   return edge;
 }
 
-tr::Node *tr::GraphFactory::source() {
+tr::Node *tr::GraphBuilder::source() {
   Node *source = create_node(tr::NodeType::SOURCE);
   return source;
 }
 
-tr::Node *tr::GraphFactory::sink(Node *n) {
+tr::Node *tr::GraphBuilder::sink(Node *n) {
   Node *sink = create_node(tr::NodeType::SINK);
   connect_nodes(n, 0, sink, 0);
   return sink;
 }
 
-tr::Node *tr::GraphFactory::linear(tr::Node *n) {
+tr::Node *tr::GraphBuilder::linear(tr::Node *n) {
   Node *W = create_node(tr::NodeType::PLACEHOLDER);
   Node *mul = create_node(tr::NodeType::MATMUL);
   Node *b = create_node(tr::NodeType::PLACEHOLDER);

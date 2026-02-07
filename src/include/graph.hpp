@@ -40,7 +40,7 @@ struct Edge {
   int dst_port;
 };
 
-class GraphFactory {
+class GraphBuilder {
 private:
   int current_node_id = 0;
   int current_edge_id = 0;
@@ -51,8 +51,8 @@ private:
   Edge *connect_nodes(Node *src, int src_port, Node *dst, int dst_port);
 
 public:
-  GraphFactory() = default;
-  ~GraphFactory();
+  GraphBuilder() = default;
+  ~GraphBuilder();
 
   Node *source();
   Node *sink(Node *n);

@@ -12,6 +12,9 @@ target_sources(Transformers
   ${CMAKE_CURRENT_SOURCE_DIR}/src/graph.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/kernel_registry.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/topological_sorter.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/compile_graph.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/memory_planner.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/constant_folding.cpp
   
   PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/src/include/tensor.hpp
