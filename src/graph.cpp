@@ -10,9 +10,10 @@ tr::Graph::~Graph() {
   }
 }
 
-tr::Node *tr::Graph::create_node(tr::NodeType type) {
+tr::Node *tr::Graph::create_node(tr::NodeType type, std::string name) {
   Node *node = new Node;
   node->type = type;
+  node->name = name;
   node->id = current_node_id++;
   all_nodes.push_back(node);
   return node;
@@ -37,22 +38,22 @@ tr::Edge *tr::Graph::connect_nodes(tr::Node *src, int src_port, tr::Node *dst,
 }
 
 tr::Node *tr::Graph::source() {
-  Node *source = create_node(tr::NodeType::SOURCE);
+  Node *source = create_node(tr::NodeType::SOURCE, "source");
   return source;
 }
 
 tr::Node *tr::Graph::sink(Node *n) {
-  Node *sink = create_node(tr::NodeType::SINK);
+  Node *sink = create_node(tr::NodeType::SINK, "sink");
   connect_nodes(n, 0, sink, 0);
   return sink;
 }
 
-tr::Node *tr::Graph::linear(tr::Node *n) {
-  Node *W = create_node(tr::NodeType::PLACEHOLDER);
-  Node *mul = create_node(tr::NodeType::MATMUL);
-  Node *b = create_node(tr::NodeType::PLACEHOLDER);
-  Node *sum = create_node(tr::NodeType::SUM);
-  Node *relu = create_node(tr::NodeType::RELU);
+tr::Node *tr::Graph::linear(tr::Node *n, std::string name) {
+  Node *W = create_node(tr::NodeType::PLACEHOLDER, name + ":W");
+  Node *mul = create_node(tr::NodeType::MATMUL, name + ":matmul");
+  Node *b = create_node(tr::NodeType::PLACEHOLDER, name + ":b");
+  Node *sum = create_node(tr::NodeType::SUM, name + ":sum");
+  Node *relu = create_node(tr::NodeType::RELU, name + ":ReLU");
 
   // n*W
   connect_nodes(n, 0, mul, 0);

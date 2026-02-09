@@ -50,9 +50,20 @@ public:
     m_data = std::vector<T>(total_elements);
   }
 
-  const std::vector<size_t> shape() {
-    return (const std::vector<size_t>)m_shape;
+  Tensor(const std::vector<T> &data, const std::vector<size_t> &shape) {
+    m_shape = shape;
+    m_data = data;
+
+    m_strides = std::vector<size_t>(m_shape.size());
+    set_strides();
   }
+
+  static Tensor<T> zeroes_in_shape(const Tensor<T> &tensor) {
+    std::vector<size_t> shape = tensor.shape();
+    return Tensor<T>(shape);
+  }
+
+  const std::vector<size_t> shape() const { return m_shape; }
 
   T &at(const std::vector<size_t> &indices) {
 
@@ -74,6 +85,8 @@ public:
   std::vector<T> *get_data_handle() { return &m_data; }
 };
 
+// Deprecate this
+// this is handled in constructor
 template <typename T>
 Tensor<T> tensor_from_data(std::vector<T> data, std::vector<size_t> shape) {
 

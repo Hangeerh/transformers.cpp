@@ -1,5 +1,6 @@
 #include "kernel.hpp"
 #include "tensor.hpp"
+#include <stdexcept>
 
 void tr::KernelRegistry::register_kernel(NodeType type, KernelFn fn) {
   kernels[type] = std::move(fn);
@@ -36,11 +37,20 @@ void tr::KernelRegistry::register_default_kernels() {
                     return node->const_value;
                   });
 
-  // TODO tensor sum
+  // TODO make it more efficient?
   register_kernel(
       NodeType::SUM,
       [](const std::vector<Tensor<float>> &inputs, Node *) -> Tensor<float> {
-        Tensor<float> result;
+        if (inputs.empty()) {
+          throw std::runtime_error("Sum node has no inputs");
+        }
+        tr::Tensor<float> result =
+            tr::Tensor<float>::zeroes_in_shape(inputs[0]);
+
+        for (auto t : inputs) {
+          result = tr::matsum(result, t);
+        }
+
         return result;
       });
 
@@ -57,8 +67,8 @@ void tr::KernelRegistry::register_default_kernels() {
         return result;
       });
 
-  // TODO matmul kernel
+  // TODO inplement matmul
   register_kernel(NodeType::MATMUL,
                   [](const std::vector<Tensor<float>> &inputs,
-                     Node *) -> Tensor<float> { return Tensor<float>{}; });
+                     Node *) -> Tensor<float> { return tr::Tensor<float>(); });
 }

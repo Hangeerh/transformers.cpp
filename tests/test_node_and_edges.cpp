@@ -3,7 +3,7 @@
 int main() {
   tr::Graph f;
   tr::Node *source = f.source();
-  tr::Node *layer1 = f.linear(source);
-  tr::Node *layer2 = f.linear(layer1);
+  tr::Node *layer1 = f.linear(source, "layer1");
+  tr::Node *layer2 = f.linear(layer1, "layer2");
   tr::Node *sink = f.sink(layer2);
 }

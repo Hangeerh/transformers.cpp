@@ -47,7 +47,7 @@ private:
   NodeSet all_nodes;
   EdgeSet all_edges;
 
-  Node *create_node(NodeType type);
+  Node *create_node(NodeType type, std::string name);
   Edge *connect_nodes(Node *src, int src_port, Node *dst, int dst_port);
 
 public:
@@ -56,7 +56,7 @@ public:
 
   Node *source();
   Node *sink(Node *n);
-  Node *linear(Node *n);
+  Node *linear(Node *n, std::string name);
 };
 
 }; // namespace tr
