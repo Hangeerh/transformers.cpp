@@ -6,7 +6,7 @@
 namespace tr {
 class Session {
 private:
-  GraphBuilder graph;
+  Graph graph;
   GraphCompiler compiler;
   KernelRegistry reg;
 
