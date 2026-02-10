@@ -5,8 +5,8 @@ int main() {
   tr::Graph g;
   tr::GraphCompiler compiler;
 
-  tr::Node *source = g.source();
-  tr::Node *layer1 = g.linear(source, "layer1");
+  tr::Node *source = g.source(2, 4);
+  tr::Node *layer1 = g.linear(source, 16, "layer1");
   tr::Node *sink = g.sink(layer1);
 
   tr::CompiledGraph executable = compiler.compile(sink);

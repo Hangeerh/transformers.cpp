@@ -37,8 +37,10 @@ tr::Edge *tr::Graph::connect_nodes(tr::Node *src, int src_port, tr::Node *dst,
   return edge;
 }
 
-tr::Node *tr::Graph::source() {
+tr::Node *tr::Graph::source(int height, int width) {
   Node *source = create_node(tr::NodeType::SOURCE, "source");
+  source->attributes[tr::NodeAttributeNames::MATRIX_WIDTH] = width;
+  source->attributes[tr::NodeAttributeNames::MATRIX_HEIGHT] = height;
   return source;
 }
 
@@ -48,13 +50,27 @@ tr::Node *tr::Graph::sink(Node *n) {
   return sink;
 }
 
-tr::Node *tr::Graph::linear(tr::Node *n, std::string name) {
+tr::Node *tr::Graph::linear(tr::Node *n, int out_dim, std::string name) {
   Node *W = create_node(tr::NodeType::PLACEHOLDER, name + ":W");
-  Node *mul = create_node(tr::NodeType::MATMUL, name + ":matmul");
-  Node *b = create_node(tr::NodeType::PLACEHOLDER, name + ":b");
-  Node *sum = create_node(tr::NodeType::SUM, name + ":sum");
-  Node *relu = create_node(tr::NodeType::RELU, name + ":ReLU");
+  W->attributes[tr::NodeAttributeNames::MATRIX_HEIGHT] =
+      n->attributes.at(tr::NodeAttributeNames::MATRIX_WIDTH);
+  W->attributes[tr::NodeAttributeNames::MATRIX_WIDTH] = out_dim;
 
+  Node *mul = create_node(tr::NodeType::MATMUL, name + ":matmul");
+
+  Node *b = create_node(tr::NodeType::PLACEHOLDER, name + ":b");
+  b->attributes[tr::NodeAttributeNames::MATRIX_HEIGHT] =
+      n->attributes.at(tr::NodeAttributeNames::MATRIX_HEIGHT);
+  b->attributes[tr::NodeAttributeNames::MATRIX_WIDTH] = out_dim;
+
+  Node *sum = create_node(tr::NodeType::SUM, name + ":sum");
+
+  // Currently seems like a hack
+  // Might fix later
+  Node *relu = create_node(tr::NodeType::RELU, name + ":ReLU");
+  relu->attributes[tr::NodeAttributeNames::MATRIX_HEIGHT] =
+      n->attributes.at(tr::NodeAttributeNames::MATRIX_HEIGHT);
+  relu->attributes[tr::NodeAttributeNames::MATRIX_WIDTH] = out_dim;
   // n*W
   connect_nodes(n, 0, mul, 0);
   connect_nodes(W, 0, mul, 1);

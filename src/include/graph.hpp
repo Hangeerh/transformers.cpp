@@ -21,6 +21,11 @@ enum class NodeType {
 using EdgeSet = std::vector<Edge *>;
 using NodeSet = std::vector<Node *>;
 
+enum class NodeAttributeNames {
+  MATRIX_WIDTH,
+  MATRIX_HEIGHT,
+};
+
 struct Node {
   int id;
   NodeType type;
@@ -29,7 +34,7 @@ struct Node {
   std::string name;
 
   Tensor<float> const_value;
-  std::unordered_map<std::string, int> int_attrs;
+  std::unordered_map<NodeAttributeNames, int> attributes;
 };
 
 struct Edge {
@@ -54,9 +59,10 @@ public:
   Graph() = default;
   ~Graph();
 
-  Node *source();
+  // Currently source node can only accept one input matrix
+  Node *source(int height, int width);
   Node *sink(Node *n);
-  Node *linear(Node *n, std::string name);
+  Node *linear(Node *n, int out_dim, std::string name);
 };
 
 }; // namespace tr
