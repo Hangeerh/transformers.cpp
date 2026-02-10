@@ -67,7 +67,11 @@ public:
 class GraphCompiler {
 public:
   // TODO add options
-  CompiledGraph compile(Node *sink, KernelRegistry *Registry);
+  tr::KernelRegistry Registry;
+
+  GraphCompiler() { Registry.register_default_kernels(); }
+
+  CompiledGraph compile(Node *sink);
 };
 
 } // namespace tr

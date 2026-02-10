@@ -35,22 +35,21 @@ tr::Tensor<float> tr::CompiledGraph::execute() {
   return result;
 }
 
-tr::CompiledGraph tr::GraphCompiler::compile(tr::Node *sink,
-                                             tr::KernelRegistry *Registry) {
+tr::CompiledGraph tr::GraphCompiler::compile(tr::Node *sink) {
   tr::CompiledGraph compiled;
 
   std::vector<tr::Node *> sorted = tr::TopologicalSorter::sort(sink);
 
   std::unique_ptr<tr::ConstantFolding> fold =
       std::make_unique<tr::ConstantFolding>();
-  fold->run(sorted, Registry);
+  fold->run(sorted, &Registry);
 
   compiled.memory_plan = tr::MemoryPlanner::create_plan(sorted);
 
   for (Node *node : sorted) {
     ExecutionStep step;
     step.node = node;
-    step.kernel = Registry->get_kernel(node->type);
+    step.kernel = Registry.get_kernel(node->type);
     step.debug_name = node->name;
 
     for (Edge *e : node->src_edges) {
