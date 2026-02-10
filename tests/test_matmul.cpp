@@ -4,10 +4,10 @@
 
 void test_2x2_matmul() {
   std::vector<float> data = {1.0f, 2.0f, 3.0f, 4.0f};
-  tr::Tensor<float> a = tr::tensor_from_data(data, {2, 2});
+  tr::Tensor<float> a(data, {2, 2});
 
   data = {1.0f, 2.0f, 3.0f, 4.0f};
-  tr::Tensor<float> b = tr::tensor_from_data(data, {2, 2});
+  tr::Tensor<float> b(data, {2, 2});
 
   tr::Tensor<float> c = tr::matmul(a, b);
 

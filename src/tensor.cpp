@@ -24,7 +24,7 @@ tr::Tensor<int> tr::tensor_randint_in_shape(std::vector<size_t> shape,
 
   srand(1);
 
-  tr::Tensor<int> out = tr::tensor_from_data(v, shape);
+  tr::Tensor<int> out(v, shape);
 
   return out;
 }

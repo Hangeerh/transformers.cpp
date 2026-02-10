@@ -6,20 +6,20 @@ namespace tr {
 
 template <typename T> class Tensor {
 private:
-  std::vector<T> m_data;
-  std::vector<size_t> m_shape;
-  std::vector<size_t> m_strides;
+  std::vector<T> tensor_data;
+  std::vector<size_t> tensor_shape;
+  std::vector<size_t> tensor_strides;
 
   void set_strides() {
-    size_t last = m_shape.size() - 1;
+    size_t last = tensor_shape.size() - 1;
     size_t stride = 1;
 
     for (size_t i = last; i > 0; --i) {
-      stride *= m_shape.at(i);
-      m_strides.at(i - 1) = stride;
+      stride *= tensor_shape.at(i);
+      tensor_strides.at(i - 1) = stride;
     }
 
-    m_strides.back() = 1;
+    tensor_strides.back() = 1;
   }
 
   size_t calculate_index(const std::vector<size_t> &indices) {
@@ -27,7 +27,7 @@ private:
     size_t count = indices.size();
 
     for (size_t i = 0; i < count; i++) {
-      index += indices.at(i) * m_strides.at(i);
+      index += indices.at(i) * tensor_strides.at(i);
     }
 
     return index;
@@ -37,80 +37,57 @@ public:
   Tensor() = default;
 
   Tensor(const std::vector<size_t> &shape) {
-    m_shape = shape;
-    m_strides = std::vector<size_t>(m_shape.size());
+    tensor_shape = shape;
+    tensor_strides = std::vector<size_t>(tensor_shape.size());
 
     set_strides();
 
     size_t total_elements = 1;
-    for (size_t i : m_shape) {
+    for (size_t i : tensor_shape) {
       total_elements *= i;
     }
 
-    m_data = std::vector<T>(total_elements);
+    tensor_data = std::vector<T>(total_elements);
   }
 
   Tensor(const std::vector<T> &data, const std::vector<size_t> &shape) {
-    m_shape = shape;
-    m_data = data;
+    tensor_shape = shape;
+    tensor_data = data;
 
-    m_strides = std::vector<size_t>(m_shape.size());
+    tensor_strides = std::vector<size_t>(tensor_shape.size());
     set_strides();
+  }
+
+  const std::vector<size_t> shape() const { return tensor_shape; }
+
+  std::vector<T> &data() { return tensor_data; }
+
+  size_t dim() { return tensor_shape.size(); }
+
+  bool is_empty() { return tensor_data.empty(); }
+
+  size_t total_elements() { return tensor_data.size(); }
+
+  T &at(const std::vector<size_t> &indices) {
+
+    size_t count = indices.size();
+
+    assert(count == tensor_shape.size() &&
+           "tr::Tensor::at dimension mismatch between tensor and indices");
+
+    for (size_t i = 0; i < count; i++) {
+      assert(indices.at(i) < tensor_shape.at(i) &&
+             "tr::Tensor::at index out of bounds");
+    }
+
+    return tensor_data.at(calculate_index(indices));
   }
 
   static Tensor<T> zeroes_in_shape(const Tensor<T> &tensor) {
     std::vector<size_t> shape = tensor.shape();
     return Tensor<T>(shape);
   }
-
-  const std::vector<size_t> shape() const { return m_shape; }
-
-  T &at(const std::vector<size_t> &indices) {
-
-    size_t count = indices.size();
-
-    assert(count == m_shape.size() &&
-           "tr::Tensor::at dimension mismatch between tensor and indices");
-
-    for (size_t i = 0; i < count; i++) {
-      assert(indices.at(i) < m_shape.at(i) &&
-             "tr::Tensor::at index out of bounds");
-    }
-
-    return m_data.at(calculate_index(indices));
-  }
-
-  std::vector<T> get_data() { return m_data; }
-
-  std::vector<T> *get_data_handle() { return &m_data; }
 };
-
-// Deprecate this
-// this is handled in constructor
-template <typename T>
-Tensor<T> tensor_from_data(std::vector<T> data, std::vector<size_t> shape) {
-
-  {
-    size_t count = 0;
-    size_t shape_size = shape.size();
-
-    for (size_t i = 0; i < shape_size; i++) {
-      size_t index = shape.at(i);
-      assert(index > 0 &&
-             "tr::tensor_from_data shape cannot have an index of value 0");
-      count += index;
-    }
-
-    assert(count == data.size() &&
-           "tr::tensor_from_data size of data does not match tensor shape");
-  }
-
-  Tensor<T> out(shape);
-
-  *out.get_data_handle() = data;
-
-  return out;
-}
 
 Tensor<int> tensor_randint_in_shape(std::vector<size_t> shape,
                                     unsigned int seed);
@@ -160,25 +137,25 @@ template <typename T> Tensor<T> matmul(Tensor<T> *t1, Tensor<T> *t2) {
 
 template <typename T>
 void matsum_in_place(Tensor<T> *t1, Tensor<T> *t2, Tensor<T> *out) {
-  assert(t1->shape().size() == 2 && "tr::matsum only supports matrices");
-  assert(t2->shape().size() == 2 && "tr::matsum only supports matrices");
+  assert(t1->dim() == 2 && "tr::matsum only supports matrices");
+  assert(t2->dim() == 2 && "tr::matsum only supports matrices");
 
   assert(t1->shape() == t2->shape() && "tr::matsum tensor shapes must match");
   assert(out->shape() == t1->shape() && "tr::matsum tensor shapes must match");
 
-  std::vector<T> *t1_data = t1->get_data_handle();
-  std::vector<T> *t2_data = t2->get_data_handle();
-  std::vector<T> *out_data = out->get_data_handle();
+  std::vector<T> &t1_data = t1->data();
+  std::vector<T> &t2_data = t2->data();
+  std::vector<T> &out_data = out->data();
 
-  size_t count = t1_data->size();
+  size_t count = t1->total_elements();
 
   for (size_t i = 0; i < count; i++) {
-    out_data->at(i) = t1_data->at(i) + t2_data->at(i);
+    out_data.at(i) = t1_data.at(i) + t2_data.at(i);
   }
 }
 
 template <typename T> Tensor<T> matsum(Tensor<T> &t1, Tensor<T> &t2) {
-  Tensor<T> out(t1.shape());
+  Tensor<T> out = tr::Tensor<T>::zeroes_in_shape(t1);
 
   matsum_in_place(&t1, &t2, &out);
 

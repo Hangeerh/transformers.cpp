@@ -61,7 +61,7 @@ void tr::KernelRegistry::register_default_kernels() {
           return Tensor<float>{};
 
         Tensor result = inputs[0];
-        for (float &val : *result.get_data_handle()) {
+        for (float &val : result.data()) {
           val = std::max(0.0f, val);
         }
         return result;
