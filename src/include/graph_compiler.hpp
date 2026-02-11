@@ -60,6 +60,7 @@ public:
   std::unordered_map<int, Tensor<float>> tensor_store;
 
   void feed(Node *node, const Tensor<float> &value);
+  void feed(const std::string &node_name, const Tensor<float> &value);
 
   Tensor<float> execute();
 };

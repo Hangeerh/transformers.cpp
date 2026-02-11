@@ -11,6 +11,18 @@ void tr::CompiledGraph::feed(Node *node, const Tensor<float> &value) {
   node->const_value = value;
 }
 
+void tr::CompiledGraph::feed(const std::string &node_name,
+                             const tr::Tensor<float> &value) {
+  for (tr::Node *n : input_nodes) {
+    if (n->name == node_name) {
+      if (!n->dst_edges.empty()) {
+        tensor_store[n->dst_edges[0]->id] = value;
+      }
+      n->const_value = value;
+    }
+  }
+}
+
 tr::Tensor<float> tr::CompiledGraph::execute() {
   std::cout << "=== RUNNING COMPILE GRAPH ===" << std::endl;
 
