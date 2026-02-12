@@ -15,11 +15,11 @@ const tr::KernelFn tr::KernelRegistry::get_kernel(NodeType type) {
 }
 
 void tr::KernelRegistry::register_default_kernels() {
-  register_kernel(
-      NodeType::SOURCE,
-      [](const std::vector<Tensor<float>> &inputs, Node *) -> Tensor<float> {
-        return inputs.empty() ? Tensor<float>() : inputs[0];
-      });
+  register_kernel(NodeType::SOURCE,
+                  [](const std::vector<Tensor<float>> &inputs,
+                     Node *node) -> Tensor<float> {
+                    return inputs.empty() ? node->const_value : inputs[0];
+                  });
 
   register_kernel(
       NodeType::SINK,

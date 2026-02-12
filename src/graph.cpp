@@ -50,7 +50,36 @@ tr::Node *tr::Graph::sink(Node *n) {
   return sink;
 }
 
-tr::Node *tr::Graph::linear(tr::Node *n, int out_dim, std::string name) {
+tr::Node *tr::Graph::linear(tr::Node *n, int out_dim, bool bias,
+                            std::string name) {
+  Node *W = create_node(tr::NodeType::PLACEHOLDER, name + ":W");
+  W->attributes[tr::NodeAttributeNames::MATRIX_HEIGHT] =
+      n->attributes.at(tr::NodeAttributeNames::MATRIX_WIDTH);
+  W->attributes[tr::NodeAttributeNames::MATRIX_WIDTH] = out_dim;
+
+  Node *mul = create_node(tr::NodeType::MATMUL, name + ":matmul");
+
+  // n*W
+  connect_nodes(n, 0, mul, 0);
+  connect_nodes(W, 0, mul, 1);
+  if (bias) {
+    Node *b = create_node(tr::NodeType::PLACEHOLDER, name + ":b");
+    b->attributes[tr::NodeAttributeNames::MATRIX_HEIGHT] =
+        n->attributes.at(tr::NodeAttributeNames::MATRIX_HEIGHT);
+    b->attributes[tr::NodeAttributeNames::MATRIX_WIDTH] = out_dim;
+
+    Node *sum = create_node(tr::NodeType::SUM, name + ":sum");
+
+    // n*W + b
+    connect_nodes(mul, 0, sum, 0);
+    connect_nodes(b, 0, sum, 0);
+
+    return sum;
+  }
+
+  return mul;
+}
+tr::Node *tr::Graph::dense(tr::Node *n, int out_dim, std::string name) {
   Node *W = create_node(tr::NodeType::PLACEHOLDER, name + ":W");
   W->attributes[tr::NodeAttributeNames::MATRIX_HEIGHT] =
       n->attributes.at(tr::NodeAttributeNames::MATRIX_WIDTH);

@@ -2,12 +2,12 @@
 #include "graph_compiler.hpp"
 #include "tensor.hpp"
 
-int main() {
+void test_one_layer_dense() {
   tr::Graph g;
   tr::GraphCompiler compiler;
 
-  tr::Node *source = g.source(2, 4);
-  tr::Node *layer1 = g.linear(source, 16, "layer1");
+  tr::Node *source = g.source(1, 2);
+  tr::Node *layer1 = g.dense(source, 2, "layer1");
   tr::Node *sink = g.sink(layer1);
 
   tr::Tensor<float> layer1W({1, 0, 0, 1}, {2, 2});
@@ -21,4 +21,28 @@ int main() {
   executable.feed("source", input);
 
   executable.execute();
+}
+
+void test_one_layer_linear_no_bias() {
+  tr::Graph g;
+  tr::GraphCompiler compiler;
+
+  tr::Node *source = g.source(1, 2);
+  tr::Node *layer1 = g.linear(source, 2, false, "layer1");
+  tr::Node *sink = g.sink(layer1);
+
+  tr::Tensor<float> layer1W({1, 0, 0, 1}, {2, 2});
+  tr::Tensor<float> input({0, 0}, {1, 2});
+
+  tr::CompiledGraph executable = compiler.compile(sink);
+
+  executable.feed("layer1:W", layer1W);
+  executable.feed("source", input);
+
+  executable.execute();
+}
+
+int main() {
+  test_one_layer_linear_no_bias();
+  test_one_layer_dense();
 }

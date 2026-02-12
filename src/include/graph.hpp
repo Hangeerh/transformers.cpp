@@ -62,7 +62,8 @@ public:
   // Currently source node can only accept one input matrix
   Node *source(int height, int width);
   Node *sink(Node *n);
-  Node *linear(Node *n, int out_dim, std::string name);
+  Node *linear(Node *n, int out_dim, bool bias, std::string name);
+  Node *dense(Node *n, int out_dim, std::string name);
 };
 
 }; // namespace tr
