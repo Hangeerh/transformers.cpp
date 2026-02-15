@@ -67,8 +67,9 @@ void tr::KernelRegistry::register_default_kernels() {
         return result;
       });
 
-  // TODO inplement matmul
-  register_kernel(NodeType::MATMUL,
-                  [](const std::vector<Tensor<float>> &inputs,
-                     Node *) -> Tensor<float> { return tr::Tensor<float>(); });
+  register_kernel(
+      NodeType::MATMUL,
+      [](const std::vector<Tensor<float>> &inputs, Node *) -> Tensor<float> {
+        return tr::matmul<float>(inputs.at(0), inputs.at(1));
+      });
 }

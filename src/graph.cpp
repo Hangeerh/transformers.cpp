@@ -58,7 +58,11 @@ tr::Node *tr::Graph::linear(tr::Node *n, int out_dim, bool bias,
   W->attributes[tr::NodeAttributeNames::MATRIX_WIDTH] = out_dim;
 
   Node *mul = create_node(tr::NodeType::MATMUL, name + ":matmul");
+  mul->attributes[tr::NodeAttributeNames::MATRIX_WIDTH] =
+      n->attributes.at(tr::NodeAttributeNames::MATRIX_WIDTH);
 
+  mul->attributes[tr::NodeAttributeNames::MATRIX_HEIGHT] =
+      W->attributes.at(tr::NodeAttributeNames::MATRIX_HEIGHT);
   // n*W
   connect_nodes(n, 0, mul, 0);
   connect_nodes(W, 0, mul, 1);
@@ -69,6 +73,10 @@ tr::Node *tr::Graph::linear(tr::Node *n, int out_dim, bool bias,
     b->attributes[tr::NodeAttributeNames::MATRIX_WIDTH] = out_dim;
 
     Node *sum = create_node(tr::NodeType::SUM, name + ":sum");
+    sum->attributes[tr::NodeAttributeNames::MATRIX_WIDTH] =
+        b->attributes.at(tr::NodeAttributeNames::MATRIX_WIDTH);
+    sum->attributes[tr::NodeAttributeNames::MATRIX_HEIGHT] =
+        b->attributes.at(tr::NodeAttributeNames::MATRIX_HEIGHT);
 
     // n*W + b
     connect_nodes(mul, 0, sum, 0);
