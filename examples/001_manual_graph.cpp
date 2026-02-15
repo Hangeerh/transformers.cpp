@@ -1,9 +1,3 @@
-# transformers.cpp
-A demonstrative c++ deep-learning library
-
-## Usage
-
-```cpp
 #include "transformers/transformers.hpp"
 
 int main() {
@@ -26,14 +20,3 @@ int main() {
 
   tr::Tensor<float> result = executable.execute();
 }
-```
-
-## Building from source
-
-Build using cmake
-```shell
-mkdir build
-cd build
-cmake ..
-make
-```
