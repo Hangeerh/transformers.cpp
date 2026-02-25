@@ -51,13 +51,18 @@ struct ExecutionStep {
   std::string debug_name;
 };
 
+struct TensorStore {
+  std::unordered_map<int, Tensor<float>> comptime_static;
+  std::unordered_map<int, Tensor<float>> runtime_dynamic;
+};
+
 class CompiledGraph {
 public:
   std::vector<ExecutionStep> steps;
   std::vector<Node *> input_nodes;
   std::vector<Node *> output_nodes;
   MemoryPlanner::Plan memory_plan;
-  std::unordered_map<int, Tensor<float>> tensor_store;
+  TensorStore tensor_store;
 
   void feed(Node *node, const Tensor<float> &value);
   void feed(const std::string &node_name, const Tensor<float> &value);

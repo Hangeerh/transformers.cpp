@@ -5,7 +5,7 @@
 
 void tr::CompiledGraph::feed(Node *node, const Tensor<float> &value) {
   if (!node->dst_edges.empty()) {
-    tensor_store[node->dst_edges[0]->id] = value;
+    tensor_store.comptime_static[node->dst_edges[0]->id] = value;
   }
 
   node->const_value = value;
@@ -16,7 +16,7 @@ void tr::CompiledGraph::feed(const std::string &node_name,
   for (tr::Node *n : input_nodes) {
     if (n->name == node_name) {
       if (!n->dst_edges.empty()) {
-        tensor_store[n->dst_edges[0]->id] = value;
+        tensor_store.comptime_static[n->dst_edges[0]->id] = value;
       }
       n->const_value = value;
     }
@@ -33,15 +33,17 @@ tr::Tensor<float> tr::CompiledGraph::execute() {
 
     std::vector<Tensor<float>> inputs;
     for (int edge_id : step.input_edge_ids) {
-      if (tensor_store.count(edge_id)) {
-        inputs.push_back(tensor_store[edge_id]);
+      if (tensor_store.comptime_static.count(edge_id)) {
+        inputs.push_back(tensor_store.comptime_static[edge_id]);
+      } else if (tensor_store.runtime_dynamic.count(edge_id)) {
+        inputs.push_back(tensor_store.runtime_dynamic[edge_id]);
       }
     }
 
     result = step.kernel(inputs, step.node);
 
     for (int edge_id : step.output_edge_ids) {
-      tensor_store[edge_id] = result;
+      tensor_store.runtime_dynamic[edge_id] = result;
     }
   }
   return result;
