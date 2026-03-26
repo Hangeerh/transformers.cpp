@@ -10,13 +10,12 @@ int main() {
 
   // Create a source node.
   // The source node is where we feed in our input
-  // We specify that our inpu should be 1 rows x 2 columns
+  // We specify that our input tensor should be 1 rows x 2 columns
   tr::Node *source = g.source(1, 2);
 
   // Create a dense layer ReLU(x@W + b), with inputs feeding in from the sink
-  // node
-  // We specify that the output dimension should be a row vector of dimension 2
-  // We also specify a human readable indentifier "layer1"
+  // node. We specify that the output dimension should be a row vector of
+  // dimension 2. We also specify a human readable indentifier "layer1"
   tr::Node *layer1 = g.dense(source, 2, "layer1");
 
   // Create the output sink node from layer1
@@ -24,7 +23,6 @@ int main() {
   tr::Node *sink = g.sink(layer1);
 
   // Create weights and biases for the dense layer
-
   // Create a weights matrix
   // [ 2 0 ]
   // [ 0 2 ]
@@ -51,11 +49,14 @@ int main() {
   // First runs x@W
   // [1 1] [2 0] = [2 2]
   //       [0 2]
+  //
   // Then +b
   // [2 2] + [1 0] = [3 2]
+  //
   // Then ReLU
   // ReLU([3 2]) = [3 2]
-  // We get our outpu [3 2]
+  //
+  // We get our output [3 2]
   tr::Tensor<float> result = executable.execute();
 
   // Display the output tensor
