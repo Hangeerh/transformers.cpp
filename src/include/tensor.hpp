@@ -1,5 +1,6 @@
 #pragma once
 #include <cassert>
+#include <sstream>
 #include <vector>
 
 namespace tr {
@@ -101,6 +102,37 @@ public:
   static Tensor<T> zeroes_in_shape(const Tensor<T> &tensor) {
     std::vector<size_t> shape = tensor.shape();
     return Tensor<T>(shape);
+  }
+
+  std::string display() {
+    size_t rank = dim();
+    if (rank > 2) {
+      return std::string("Does not support tensors of rank > 2 yet");
+    }
+
+    std::stringstream ss;
+    std::vector<size_t> cur_shape = shape();
+    size_t height = cur_shape.at(0);
+    size_t width = cur_shape.at(1);
+
+    ss << "Tensor of shape (";
+    for (size_t i = 0; i < rank - 1; i++) {
+      ss << cur_shape.at(i) << ",";
+    }
+    ss << cur_shape.at(rank - 1) << ")\n";
+
+    // Inefficient looping, will fix later
+    ss << "{\n";
+    for (size_t i = 0; i < height; i++) {
+      ss << "  {";
+      for (size_t j = 0; j < width - 1; j++) {
+        ss << at({i, j}) << ", ";
+      }
+      ss << at({i, width - 1}) << "}\n";
+    }
+    ss << "}\n";
+
+    return ss.str();
   }
 };
 

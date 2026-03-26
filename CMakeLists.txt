@@ -21,6 +21,7 @@ target_sources(Transformers
   ${CMAKE_CURRENT_SOURCE_DIR}/src/include/graph.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/include/kernel.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/include/graph_compiler.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/include/session.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/include/transformers.hpp
 )
 
