@@ -1,9 +1,47 @@
 #pragma once
 #include <cassert>
+#include <numeric>
 #include <sstream>
 #include <vector>
 
 namespace tr {
+
+enum class DType { Float32, Float64, Int32 };
+
+struct TensorShape {
+  std::vector<size_t> dims;
+
+  TensorShape() = default;
+  TensorShape(std::initializer_list<size_t> d) : dims(d) {}
+  explicit TensorShape(std::vector<size_t> d) : dims(std::move(d)) {}
+
+  size_t rank() const { return dims.size(); }
+
+  size_t element_count() const {
+    if (dims.empty())
+      return 0;
+    return std::accumulate(dims.begin(), dims.end(), size_t{1},
+                           std::multiplies<size_t>());
+  }
+
+  size_t operator[](size_t i) const { return dims.at(i); }
+
+  bool operator==(const TensorShape &other) const { return dims == other.dims; }
+  bool operator!=(const TensorShape &other) const { return !(*this == other); }
+
+  std::vector<size_t> to_vec() const { return dims; }
+
+  std::string to_string() const {
+    std::string s = "(";
+    for (size_t i = 0; i < dims.size(); i++) {
+      s += std::to_string(dims[i]);
+      if (i + 1 < dims.size())
+        s += ", ";
+    }
+    s += ")";
+    return s;
+  }
+};
 
 template <typename T> class Tensor {
 private:
