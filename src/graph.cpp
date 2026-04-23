@@ -1,123 +1,110 @@
 #include "graph.hpp"
+#include "tensor.hpp"
+#include <unordered_map>
 
-tr::Graph::~Graph() {
-  for (Node *n : all_nodes) {
-    delete n;
+namespace tr {
+
+Graph::~Graph() {
+  for (GraphNode *node : all_nodes) {
+    delete node;
   }
 
-  for (Edge *e : all_edges) {
-    delete e;
+  for (GraphValue *val : all_values) {
+    delete val;
   }
 }
 
-tr::Node *tr::Graph::create_node(tr::NodeType type, std::string name) {
-  Node *node = new Node;
-  node->type = type;
-  node->name = name;
-  node->id = current_node_id++;
-  all_nodes.push_back(node);
-  return node;
+GraphNode::~GraphNode() = default;
+
+GraphValue *Graph::alloc_value() {
+  GraphValue *value = new GraphValue;
+  value->id = current_value_id++;
+  all_values.push_back(value);
+  return value;
 }
 
-tr::Edge *tr::Graph::connect_nodes(tr::Node *src, int src_port, tr::Node *dst,
-                                   int dst_port) {
-  Edge *edge = new Edge;
-  edge->id = current_edge_id++;
-  all_edges.push_back(edge);
-
-  edge->src_node = src;
-  edge->src_port = src_port;
-
-  edge->dst_node = dst;
-  edge->dst_port = dst_port;
-
-  src->dst_edges.push_back(edge);
-  dst->src_edges.push_back(edge);
-
-  return edge;
+void Graph::connect_node_and_value(GraphNode *node, GraphValue *value, int port,
+                                   bool as_input) {
+  if (as_input) {
+    node->input_values[port] = value;
+    value->consumers.push_back(node);
+  } else {
+    node->output_values.push_back(value);
+    value->producer = node;
+    value->output_port = port;
+  }
 }
 
-tr::Node *tr::Graph::source(int height, int width) {
-  Node *source = create_node(tr::NodeType::SOURCE, "source");
-  source->attributes[tr::NodeAttributeNames::MATRIX_WIDTH] = width;
-  source->attributes[tr::NodeAttributeNames::MATRIX_HEIGHT] = height;
-  return source;
+std::unordered_map<int, TensorShape> MatmulNode::infer_output_shapes() const {
+  const GraphValue *lhs = input_values.at(0);
+  const GraphValue *rhs = input_values.at(1);
+
+  assert(lhs->shape.rank() == 2 && rhs->shape.rank() == 2 &&
+         "MatmulNode requires rank-2 inputs");
+  assert(lhs->shape[1] == rhs->shape[0] &&
+         "MatmulNode dimension mismatch for matrix multiplication");
+
+  TensorShape output_shape{lhs->shape[0], rhs->shape[1]};
+  return {{0, output_shape}};
 }
 
-tr::Node *tr::Graph::sink(Node *n) {
-  Node *sink = create_node(tr::NodeType::SINK, "sink");
-  connect_nodes(n, 0, sink, 0);
-  return sink;
-}
-
-tr::Node *tr::Graph::linear(tr::Node *n, int out_dim, bool bias,
-                            std::string name) {
-  Node *W = create_node(tr::NodeType::PLACEHOLDER, name + ":W");
-  W->attributes[tr::NodeAttributeNames::MATRIX_HEIGHT] =
-      n->attributes.at(tr::NodeAttributeNames::MATRIX_WIDTH);
-  W->attributes[tr::NodeAttributeNames::MATRIX_WIDTH] = out_dim;
-
-  Node *mul = create_node(tr::NodeType::MATMUL, name + ":matmul");
-  mul->attributes[tr::NodeAttributeNames::MATRIX_WIDTH] =
-      n->attributes.at(tr::NodeAttributeNames::MATRIX_WIDTH);
-
-  mul->attributes[tr::NodeAttributeNames::MATRIX_HEIGHT] =
-      W->attributes.at(tr::NodeAttributeNames::MATRIX_HEIGHT);
-  // n*W
-  connect_nodes(n, 0, mul, 0);
-  connect_nodes(W, 0, mul, 1);
-  if (bias) {
-    Node *b = create_node(tr::NodeType::PLACEHOLDER, name + ":b");
-    b->attributes[tr::NodeAttributeNames::MATRIX_HEIGHT] =
-        n->attributes.at(tr::NodeAttributeNames::MATRIX_HEIGHT);
-    b->attributes[tr::NodeAttributeNames::MATRIX_WIDTH] = out_dim;
-
-    Node *sum = create_node(tr::NodeType::SUM, name + ":sum");
-    sum->attributes[tr::NodeAttributeNames::MATRIX_WIDTH] =
-        b->attributes.at(tr::NodeAttributeNames::MATRIX_WIDTH);
-    sum->attributes[tr::NodeAttributeNames::MATRIX_HEIGHT] =
-        b->attributes.at(tr::NodeAttributeNames::MATRIX_HEIGHT);
-
-    // n*W + b
-    connect_nodes(mul, 0, sum, 0);
-    connect_nodes(b, 0, sum, 0);
-
-    return sum;
+bool MatmulNode::validate() const {
+  if (input_values.size() != 2) {
+    return false;
   }
 
-  return mul;
+  TensorShape left = input_values.at(0)->shape;
+  TensorShape right = input_values.at(1)->shape;
+
+  if (left.rank() != 2 || right.rank() != 2) {
+    return false;
+  }
+
+  if (left.dims[1] != right.dims[0]) {
+    return false;
+  }
+
+  return true;
 }
-tr::Node *tr::Graph::dense(tr::Node *n, int out_dim, std::string name) {
-  Node *W = create_node(tr::NodeType::PLACEHOLDER, name + ":W");
-  W->attributes[tr::NodeAttributeNames::MATRIX_HEIGHT] =
-      n->attributes.at(tr::NodeAttributeNames::MATRIX_WIDTH);
-  W->attributes[tr::NodeAttributeNames::MATRIX_WIDTH] = out_dim;
 
-  Node *mul = create_node(tr::NodeType::MATMUL, name + ":matmul");
+std::unordered_map<int, TensorShape> MatsumNode::infer_output_shapes() const {
+  const GraphValue *lhs = input_values.at(0);
+  const GraphValue *rhs = input_values.at(1);
 
-  Node *b = create_node(tr::NodeType::PLACEHOLDER, name + ":b");
-  b->attributes[tr::NodeAttributeNames::MATRIX_HEIGHT] =
-      n->attributes.at(tr::NodeAttributeNames::MATRIX_HEIGHT);
-  b->attributes[tr::NodeAttributeNames::MATRIX_WIDTH] = out_dim;
-
-  Node *sum = create_node(tr::NodeType::SUM, name + ":sum");
-
-  // Currently seems like a hack
-  // Might fix later
-  Node *relu = create_node(tr::NodeType::RELU, name + ":ReLU");
-  relu->attributes[tr::NodeAttributeNames::MATRIX_HEIGHT] =
-      n->attributes.at(tr::NodeAttributeNames::MATRIX_HEIGHT);
-  relu->attributes[tr::NodeAttributeNames::MATRIX_WIDTH] = out_dim;
-  // n*W
-  connect_nodes(n, 0, mul, 0);
-  connect_nodes(W, 0, mul, 1);
-
-  // n*W + b
-  connect_nodes(mul, 0, sum, 0);
-  connect_nodes(b, 0, sum, 0);
-
-  // ReLU(n*W + b)
-  connect_nodes(sum, 0, relu, 0);
-
-  return relu;
+  assert(lhs->shape == rhs->shape &&
+         "MatsumNode requires matching input shapes");
+  return {{0, lhs->shape}};
 }
+
+bool MatsumNode::validate() const {
+  if (input_values.size() != 2) {
+    return false;
+  }
+
+  TensorShape left = input_values.at(0)->shape;
+  TensorShape right = input_values.at(1)->shape;
+
+  if (left.rank() != 2 || right.rank() != 2) {
+    return false;
+  }
+
+  if (left.dims[1] != right.dims[1] || left.dims[0] != right.dims[0]) {
+    return false;
+  }
+
+  return true;
+}
+
+std::unordered_map<int, TensorShape> ReLUNode::infer_output_shapes() const {
+  const GraphValue *input = input_values.at(0);
+  return {{0, input->shape}};
+}
+
+bool ReLUNode::validate() const {
+  if (input_values.size() != 1) {
+    return false;
+  }
+
+  return true;
+}
+} // namespace tr
