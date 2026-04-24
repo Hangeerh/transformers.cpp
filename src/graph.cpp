@@ -1,8 +1,11 @@
 #include "graph.hpp"
 #include "tensor.hpp"
+#include <algorithm>
 #include <unordered_map>
 
 namespace tr {
+
+GraphValue::~GraphValue() { delete tensor; }
 
 Graph::~Graph() {
   for (GraphNode *node : all_nodes) {
@@ -17,6 +20,7 @@ Graph::~Graph() {
 GraphNode::~GraphNode() = default;
 
 GraphValue *Graph::alloc_value() {
+  assert(frozen);
   GraphValue *value = new GraphValue;
   value->id = current_value_id++;
   all_values.push_back(value);
@@ -25,14 +29,54 @@ GraphValue *Graph::alloc_value() {
 
 void Graph::connect_node_and_value(GraphNode *node, GraphValue *value, int port,
                                    bool as_input) {
+  assert(frozen);
   if (as_input) {
     node->input_values[port] = value;
     value->consumers.push_back(node);
   } else {
-    node->output_values.push_back(value);
+    node->output_values[port] = value;
     value->producer = node;
     value->output_port = port;
   }
+}
+
+void Graph::register_as_input(GraphValue *value) {
+  assert(frozen);
+  graph_inputs.push_back(value);
+  value->producer = nullptr;
+  value->type = GraphValue::ValueType::INPUT;
+}
+
+void Graph::register_as_output(GraphValue *value) {
+  assert(frozen);
+  graph_outputs.push_back(value);
+  value->type = GraphValue::ValueType::OUTPUT;
+}
+
+void Graph::register_as_parameter(GraphValue *value) {
+  assert(frozen);
+  value->type = GraphValue::ValueType::PARAMETER;
+}
+
+void Graph::feed_parameter_value(GraphValue *value, Tensor<float> *parameter) {
+  assert(frozen);
+  assert(value->type == GraphValue::ValueType::PARAMETER);
+
+  // TODO: Check that the parameter's shape matches the expected shape specifiec in value
+
+  value->tensor = parameter;
+}
+
+bool Graph::freeze_graph(){
+  if(!validate_graph()){
+    return false;
+  }
+
+  init_transient_and_output_tensors();
+
+  sorted_nodes = topologic_sort();
+
+  return true;
 }
 
 std::unordered_map<int, TensorShape> MatmulNode::infer_output_shapes() const {
@@ -49,22 +93,22 @@ std::unordered_map<int, TensorShape> MatmulNode::infer_output_shapes() const {
 }
 
 bool MatmulNode::validate() const {
-  if (input_values.size() != 2) {
+  if (input_values.size() != 2 || output_values.size() != 1) {
     return false;
   }
 
   TensorShape left = input_values.at(0)->shape;
   TensorShape right = input_values.at(1)->shape;
+  TensorShape out = output_values.at(0)->shape;
 
-  if (left.rank() != 2 || right.rank() != 2) {
-    return false;
-  }
+  return TensorShape::is_valid_matrix_multiplication(left, right, out);
+}
 
-  if (left.dims[1] != right.dims[0]) {
-    return false;
-  }
-
-  return true;
+void MatmulNode::forward() {
+  Tensor<float> *lhs = input_values.at(0)->tensor;
+  Tensor<float> *rhs = input_values.at(1)->tensor;
+  Tensor<float> *out = output_values.at(0)->tensor;
+  matmul_in_place(lhs, rhs, out);
 }
 
 std::unordered_map<int, TensorShape> MatsumNode::infer_output_shapes() const {
@@ -77,22 +121,26 @@ std::unordered_map<int, TensorShape> MatsumNode::infer_output_shapes() const {
 }
 
 bool MatsumNode::validate() const {
-  if (input_values.size() != 2) {
+  if (input_values.size() != 2 || output_values.size() != 1) {
     return false;
   }
 
   TensorShape left = input_values.at(0)->shape;
   TensorShape right = input_values.at(1)->shape;
+  TensorShape out = output_values.at(0)->shape;
 
-  if (left.rank() != 2 || right.rank() != 2) {
-    return false;
-  }
-
-  if (left.dims[1] != right.dims[1] || left.dims[0] != right.dims[0]) {
+  if (left != right || right != out) {
     return false;
   }
 
   return true;
+}
+
+void MatsumNode::forward() {
+  Tensor<float> *lhs = input_values.at(0)->tensor;
+  Tensor<float> *rhs = input_values.at(1)->tensor;
+  Tensor<float> *out = output_values.at(0)->tensor;
+  matsum_in_place(lhs, rhs, out);
 }
 
 std::unordered_map<int, TensorShape> ReLUNode::infer_output_shapes() const {
@@ -101,10 +149,47 @@ std::unordered_map<int, TensorShape> ReLUNode::infer_output_shapes() const {
 }
 
 bool ReLUNode::validate() const {
-  if (input_values.size() != 1) {
+  if (input_values.size() != 1 || output_values.size() != 1) {
+    return false;
+  }
+
+  TensorShape in = input_values.at(0)->shape;
+  TensorShape out = output_values.at(0)->shape;
+
+  if (in != out) {
     return false;
   }
 
   return true;
 }
+
+void ReLUNode::forward() {
+  std::vector<float> &in = input_values.at(0)->tensor->data();
+  std::vector<float> &out = output_values.at(0)->tensor->data();
+  for (size_t i = 0; i < in.size(); i++) {
+    out.at(i) = std::max(in.at(i), 0.0f);
+  }
+}
+
+bool Graph::validate_graph() {
+  assert(frozen);
+  for (auto node : all_nodes) {
+    if (!node->validate()) {
+      return false;
+    }
+  }
+  return true;
+}
+
+void Graph::init_transient_and_output_tensors() {
+  assert(frozen);
+  for (auto val : all_values) {
+    if (val->type == GraphValue::ValueType::TRANSIENT ||
+        val->type == GraphValue::ValueType::OUTPUT) {
+      val->tensor = new Tensor<float>(val->shape);
+    }
+  }
+}
+
+std::vector<GraphNode *> Graph::topologic_sort() { assert(frozen); }
 } // namespace tr

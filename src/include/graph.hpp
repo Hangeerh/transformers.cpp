@@ -17,9 +17,8 @@ protected:
   // map in the node class because the same value can go into different ports of
   // different nodes.
   std::unordered_map<int, GraphValue *> input_values;
-  // This does not need to be a map because the output port is stored in the
-  // values.
-  std::vector<GraphValue *> output_values;
+  // This needs to be a map to make writing to the value during inference easier
+  std::unordered_map<int, GraphValue *> output_values;
 
 public:
   virtual ~GraphNode() = 0;
@@ -33,12 +32,15 @@ public:
   std::unordered_map<int, GraphValue *> &get_input_values() {
     return input_values;
   }
-  std::vector<GraphValue *> &get_output_values() { return output_values; }
+  std::unordered_map<int, GraphValue *> &get_output_values() {
+    return output_values;
+  }
 };
 
 struct GraphValue {
   TensorShape shape;
-  Tensor<float>* t;
+  // TODO: Should make unique_ptr
+  Tensor<float> *tensor = nullptr;
   std::string name;
   GraphNode *producer = nullptr;
   std::vector<GraphNode *> consumers;
@@ -49,34 +51,17 @@ struct GraphValue {
   int id = 0;
   int output_port = 0;
   DType dtype = DType::Float32;
-  bool is_parameter = false;
-  bool is_input() { return producer == nullptr; }
-};
 
-class Graph {
-private:
-  std::vector<GraphNode *> all_nodes;
-  std::vector<GraphValue *> all_values;
-  int current_node_id = 0;
-  int current_value_id = 0;
+  enum class ValueType {
+    TRANSIENT,
+    INPUT,
+    OUTPUT,
+    PARAMETER,
+  };
 
-public:
-  Graph() = default;
-  ~Graph();
+  ValueType type = ValueType::TRANSIENT;
 
-  // Only allocs the value, does not initialize fields.
-  GraphValue *alloc_value();
-
-  // Allocs the node, but does not connect it with any values;
-  template <typename T, typename... Args> T *alloc_node(Args &&...args) {
-    T *node = new T(std::forward<Args>(args)...);
-    node->id = current_node_id++;
-    all_nodes.push_back(node);
-    return node;
-  }
-
-  void connect_node_and_value(GraphNode *node, GraphValue *value, int port,
-                              bool as_input);
+  ~GraphValue();
 };
 
 // Currently binary x*W
@@ -106,5 +91,52 @@ class ReLUNode : public GraphNode {
   std::unordered_map<int, TensorShape> infer_output_shapes() const override;
   bool validate() const override;
   void forward() override;
+};
+
+class Graph {
+private:
+  std::vector<GraphNode *> all_nodes;
+  std::vector<GraphValue *> all_values;
+  std::vector<GraphValue *> graph_inputs;
+  std::vector<GraphValue *> graph_outputs;
+  std::vector<GraphNode *> sorted_nodes = {};
+  int current_node_id = 0;
+  int current_value_id = 0;
+  bool frozen = false;
+
+  bool validate_graph();
+
+  void init_transient_and_output_tensors();
+
+  std::vector<GraphNode *> topologic_sort();
+
+public:
+  Graph() = default;
+  ~Graph();
+
+  // Only allocs the value, does not initialize fields.
+  GraphValue *alloc_value();
+
+  // Allocs the node, but does not connect it with any values;
+  template <typename T, typename... Args> T *alloc_node(Args &&...args) {
+    T *node = new T(std::forward<Args>(args)...);
+    node->id = current_node_id++;
+    all_nodes.push_back(node);
+    return node;
+  }
+
+  void connect_node_and_value(GraphNode *node, GraphValue *value, int port,
+                              bool as_input);
+
+  void register_as_input(GraphValue *value);
+  void register_as_output(GraphValue *value);
+  void register_as_parameter(GraphValue *value);
+
+  // Should be done before freezing the graph
+  void feed_parameter_value(GraphValue *value, Tensor<float> *parameter);
+
+  bool freeze_graph();
+
+  std::vector<Tensor<float> *> forward();
 };
 }; // namespace tr

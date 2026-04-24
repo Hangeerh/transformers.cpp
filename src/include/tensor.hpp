@@ -41,6 +41,21 @@ struct TensorShape {
     s += ")";
     return s;
   }
+
+  static bool is_valid_matrix_multiplication(const TensorShape &left,
+                                             const TensorShape &right,
+                                             const TensorShape &out) {
+    if (left.rank() != 2 || right.rank() != 2 || out.rank() != 2) {
+      return false;
+    }
+    if (left.dims[1] != right.dims[0]) {
+      return false;
+    }
+    if (out.dims[0] != left.dims[0] || out.dims[1] != right.dims[1]) {
+      return false;
+    }
+    return true;
+  }
 };
 
 template <typename T> class Tensor {
@@ -96,6 +111,8 @@ public:
     tensor_strides = std::vector<size_t>(tensor_shape.size());
     set_strides();
   }
+
+  Tensor(const TensorShape &shape) : Tensor(shape.dims) {}
 
   const std::vector<size_t> shape() const { return tensor_shape; }
 
